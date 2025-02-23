@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block title %}Simulation - MyBlog{% endblock %}
+{% block content %}
+<h2>태양계 시뮬레이션 놀이</h2>
+<div class="simulation-controls">
+  <form id="simulationForm">
+    <!-- 고정 공 (노란색) 관련 입력 -->
+    <label for="massFixed">고정 공 질량 (M1): </label>
+    <input type="number" id="massFixed" name="massFixed" value="400" min="1" max="500" onwheel="this.blur();"><br>
+    <!-- 파란 공 (행성) 관련 입력 -->
+    <label for="massMoving">파란 공 질량 (M2): </label>
+    <input type="number" id="massMoving" name="massMoving" value="80" min="1" max="300" onwheel="this.blur();"><br>
+    <!-- 파란 공 초기 속도 -->
+    <label for="initialSpeed">파란 공 초기 속도: </label>
+    <input type="number" id="initialSpeed" name="initialSpeed" value="4.0" min="0" max="100" step="0.1" onwheel="this.blur();"><br>
+    <!-- 파란 공 초기 각도 -->
+    <label for="initialAngle">파란 공 초기 각도 (°): </label>
+    <input type="number" id="initialAngle" name="initialAngle" value="270" min="0" max="360" onwheel="this.blur();"><br>
+    <!-- 파란 공과 노란 공 사이 거리 -->
+    <label for="orbitRadius">파란 공과 노란 공 사이 거리 R: </label>
+    <input type="number" id="orbitRadius" name="orbitRadius" value="250" min="50" max="1000" step="0.1" onwheel="this.blur();"><br>
+    <!-- UI Scale Factor -->
+    <label for="uiScale">UI Scale Factor: </label>
+    <input type="number" id="uiScale" name="uiScale" value="1.0" min="0.5" max="2.0" step="0.1" onwheel="this.blur();"><br>
+    <!-- 빨간 공 관련 입력 -->
+    <label for="addRedBall">빨간 공 추가 여부: </label>
+    <input type="checkbox" id="addRedBall" name="addRedBall"><br>
+    <div id="redBallControls">
+      <label for="redMass">빨간 공 질량 (M3): </label>
+      <input type="number" id="redMass" name="redMass" value="0.1" min="0.1" max="100" step="0.1" onwheel="this.blur();"><br>
+      <label for="redSpeed">빨간 공 초기 속도: </label>
+      <input type="number" id="redSpeed" name="redSpeed" value="8.9" min="0" max="100" step="0.1" onwheel="this.blur();"><br>
+      <label for="redAngle">빨간 공 각도 (무시됨): </label>
+      <input type="number" id="redAngle" name="redAngle" value="0" disabled><br>
+      <label for="redOrbit">빨간 공과 파란 공 사이 거리: </label>
+      <input type="number" id="redOrbit" name="redOrbit" value="10" min="1" max="100" step="0.1" onwheel="this.blur();"><br>
+      <label for="redTrajectory">빨간 공 궤적 표시: </label>
+      <input type="checkbox" id="redTrajectory" name="redTrajectory" checked><br>
+    </div>
+    <button type="button" id="startBtn">시작</button>
+  </form>
+</div>
+<div id="warningMessage" style="color:red; margin-top:10px;"></div>
+<canvas id="simulationCanvas" width="1200" height="800" style="border:1px solid #ccc; margin-top:20px;"></canvas>
+
+<script>
+  // 소수점 둘째 자리까지 반올림하는 함수
+  function round2(num) {
+    return Math.round(num * 100) / 100;
+  }
+
+  // 디폴트 값
+  const defaults = {
+    massFixed: 400,
+    massMoving: 80,
+    initialSpeed: 4.0,
+    initialAngle: 270,
+    orbitRadius: 250,
+    redMass: 0.1,
+    redSpeed: 8.9,
+    redAngle: 0,
+    redOrbit: 10,
+    uiScale: 1.0
+  };
+
+  const ranges = {
+    massFixed: { min: 1, max: 500 },
+    massMoving: { min: 1, max: 300 },
+    initialSpeed: { min: 0, max: 100 },
+    initialAngle: { min: 0, max: 360 },
+    orbitRadius: { min: 50, max: 1000 },
+    redMass: { min: 0.1, max: 100 },
+    redSpeed: { min: 0, max: 100 },
+    redAngle: { min: 0, max: 360 },
+    redOrbit: { min: 1, max: 100 },
+    uiScale: { min: 0.5, max: 2.0 }
+  };
+
+  function displayWarning(fieldName, value, min, max) {
+    const warningDiv = document.getElementById('warningMessage');
+    warningDiv.innerText = `입력값 ${value} 는 ${fieldName}의 허용 범위 (${min} ~ ${max})를 벗어났습니다. 기본값 ${defaults[fieldName]}로 복원됩니다.`;
+    setTimeout(() => { warningDiv.innerText = ""; }, 3000);
+  }
+
+  function validateField(field, fieldName) {
+    let value = parseFloat(field.value);
+    let min = ranges[fieldName].min;
+    let max = ranges[fieldName].max;
+    if (isNaN(value) || value < min || value > max) {
+      displayWarning(fieldName, field.value, min, max);
+      field.value = defaults[fieldName];
+    }
+  }
+
+  document.getElementById('massFixed').addEventListener('blur', function() { validateField(this, 'massFixed'); });
+  document.getElementById('massMoving').addEventListener('blur', function() { validateField(this, 'massMoving'); });
+  document.getElementById('initialSpeed').addEventListener('blur', function() { validateField(this, 'initialSpeed'); });
+  document.getElementById('initialAngle').addEventListener('blur', function() { validateField(this, 'initialAngle'); });
+  document.getElementById('orbitRadius').addEventListener('blur', function() { validateField(this, 'orbitRadius'); });
+  document.getElementById('redMass').addEventListener('blur', function() { validateField(this, 'redMass'); });
+  document.getElementById('redSpeed').addEventListener('blur', function() { validateField(this, 'redSpeed'); });
+  document.getElementById('redAngle').addEventListener('blur', function() { validateField(this, 'redAngle'); });
+  document.getElementById('redOrbit').addEventListener('blur', function() { validateField(this, 'redOrbit'); });
+  document.getElementById('uiScale').addEventListener('blur', function() { validateField(this, 'uiScale'); });
+
+  const G = 0.1;
+  const canvas = document.getElementById('simulationCanvas');
+  const ctx = canvas.getContext('2d');
+  const startBtn = document.getElementById('startBtn');
+  const massFixedInput = document.getElementById('massFixed');
+  const massMovingInput = document.getElementById('massMoving');
+  const initialSpeedInput = document.getElementById('initialSpeed');
+  const initialAngleInput = document.getElementById('initialAngle');
+  const orbitRadiusInput = document.getElementById('orbitRadius');
+  const addRedBallInput = document.getElementById('addRedBall');
+  const redMassInput = document.getElementById('redMass');
+  const redSpeedInput = document.getElementById('redSpeed');
+  // redAngle는 무시됨
+  const redAngleInput = document.getElementById('redAngle');
+  const redOrbitInput = document.getElementById('redOrbit');
+  const redTrajectoryCheckbox = document.getElementById('redTrajectory');
+  const uiScaleInput = document.getElementById('uiScale');
+
+  // 고정 공 (노란색) – 중심, 반지름 = 70×0.7×0.8×UI Scale
+  const fixedBall = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    radius: 70 * 0.7 * 0.8 * round2(parseFloat(uiScaleInput.value))
+  };
+
+  // 파란 공 (행성) – 초기 위치: 노란 공 중심에서 orbitRadius만큼 바로 위 (initialAngle 270°)
+  let movingBall = {
+    x: canvas.width / 2,
+    y: canvas.height / 2 - round2(parseFloat(orbitRadiusInput.value)),
+    radius: (50 * 0.35 / 3) * round2(parseFloat(uiScaleInput.value)), // 약 5.83
+    vx: 0,
+    vy: 0,
+    mass: parseFloat(massMovingInput.value) || defaults.massMoving,
+    visible: true,
+    initialX: canvas.width / 2,
+    initialY: canvas.height / 2 - round2(parseFloat(orbitRadiusInput.value))
+  };
+
+  // 빨간 공 (위성) – 초기 위치: 파란 공 바로 위 (즉, y - redOrbit)
+  let redBall = null;
+  let redTrajectory = [];
+  let trajectory = [];
+
+  let simulationRunning = false;
+
+  function resetSimulation() {
+    const uiScale = round2(parseFloat(uiScaleInput.value));
+    const orbitRadius = round2(parseFloat(orbitRadiusInput.value));
+    const massMoving = round2(parseFloat(massMovingInput.value));
+    const blueSpeedInput = round2(parseFloat(initialSpeedInput.value));
+    const redOrbit = round2(parseFloat(redOrbitInput.value));
+    const redSpeedInputVal = round2(parseFloat(redSpeedInput.value));
+    
+    // 파란 공 초기 위치: 노란 공 바로 위
+    movingBall.x = fixedBall.x;
+    movingBall.y = fixedBall.y - orbitRadius;
+    movingBall.radius = (50 * 0.35 / 3) * uiScale;
+    movingBall.mass = massMoving;
+    
+    // 파란 공 안정 궤도 속도: 입력 blueSpeed×0.1 (디폴트 4.0 → 0.4 실제)
+    // 접선 방향: if blue ball is directly above, tangent is to the right.
+    let blueSpeed = blueSpeedInput * 0.1;
+    movingBall.vx = blueSpeed;
+    movingBall.vy = 0;
+    
+    movingBall.visible = true;
+    movingBall.initialX = movingBall.x;
+    movingBall.initialY = movingBall.y;
+    
+    trajectory = [];
+    redTrajectory = [];
+    
+    if (addRedBallInput.checked) {
+      const redMass = round2(parseFloat(redMassInput.value));
+      // redSpeedInputVal: 디폴트 8.9 → 실제 0.89
+      const redSpeed = redSpeedInputVal * 0.1;
+      // 빨간 공 초기 위치: 파란 공 바로 위
+      let redInitialX = movingBall.x;
+      let redInitialY = movingBall.y - redOrbit;
+      
+      // 빨간 공의 초기 속도: 안정 궤도(빨간 공이 파란 공을 도는 경우, 접선 방향 = 오른쪽)
+      let redVx = redSpeed;
+      let redVy = 0;
+      
+      // 빨간 공 반지름: 파란 공 반지름의 0.15에 1.4배 확대
+      let redRadius = round2(movingBall.radius * 0.15 * 1.4);
+      
+      redBall = {
+        x: redInitialX,
+        y: redInitialY,
+        radius: redRadius,
+        vx: redVx,
+        vy: redVy,
+        mass: redMass,
+        visible: true,
+        initialX: redInitialX,
+        initialY: redInitialY
+      };
+    } else {
+      redBall = null;
+    }
+  }
+
+  function updateSimulation() {
+    if (!simulationRunning) return;
+    if (!movingBall.visible) return;
+    
+    // 파란 공: 노란 공에 대한 중력 적용
+    let dx = fixedBall.x - movingBall.x;
+    let dy = fixedBall.y - movingBall.y;
+    let r = Math.sqrt(dx*dx + dy*dy);
+    if (r < 1) r = 1;
+    let massFixed = parseFloat(massFixedInput.value);
+    let force = G * massFixed * movingBall.mass / (r*r);
+    let ax = force * dx / r;
+    let ay = force * dy / r;
+    movingBall.vx += ax;
+    movingBall.vy += ay;
+    movingBall.x += movingBall.vx;
+    movingBall.y += movingBall.vy;
+    
+    let minDist = fixedBall.radius + movingBall.radius;
+    if (r < minDist || movingBall.x < 0 || movingBall.x > canvas.width || movingBall.y < 0 || movingBall.y > canvas.height) {
+      movingBall.visible = false;
+      simulationRunning = false;
+    }
+    
+    if (movingBall.visible) {
+      trajectory.push({x: movingBall.x, y: movingBall.y});
+    }
+    
+    // 빨간 공: 노란 공과 파란 공 모두의 중력 적용
+    if (redBall && redBall.visible) {
+      // 노란 공으로부터의 중력
+      let dx_f = fixedBall.x - redBall.x;
+      let dy_f = fixedBall.y - redBall.y;
+      let r_f = Math.sqrt(dx_f*dx_f + dy_f*dy_f);
+      if (r_f < 1) r_f = 1;
+      let force_f = G * massFixed * redBall.mass / (r_f*r_f);
+      let ax_f = force_f * dx_f / r_f;
+      let ay_f = force_f * dy_f / r_f;
+      
+      // 파란 공으로부터의 중력
+      let dx_b = movingBall.x - redBall.x;
+      let dy_b = movingBall.y - redBall.y;
+      let r_b = Math.sqrt(dx_b*dx_b + dy_b*dy_b);
+      if (r_b < 1) r_b = 1;
+      let force_b = G * movingBall.mass * redBall.mass / (r_b*r_b);
+      let ax_b = force_b * dx_b / r_b;
+      let ay_b = force_b * dy_b / r_b;
+      
+      redBall.vx += (ax_f + ax_b);
+      redBall.vy += (ay_f + ay_b);
+      redBall.x += redBall.vx;
+      redBall.y += redBall.vy;
+      
+      if (redBall.x < 0 || redBall.x > canvas.width || redBall.y < 0 || redBall.y > canvas.height) {
+        redBall.visible = false;
+      }
+      
+      if (redBall.visible && redTrajectoryCheckbox.checked) {
+        redTrajectory.push({x: redBall.x, y: redBall.y});
+      }
+    }
+  }
+
+  function drawSimulation() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.beginPath();
+    ctx.arc(fixedBall.x, fixedBall.y, fixedBall.radius, 0, Math.PI*2);
+    ctx.fillStyle = 'yellow';
+    ctx.fill();
+    ctx.closePath();
+    
+    if (trajectory.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(trajectory[0].x, trajectory[0].y);
+      for (let i = 1; i < trajectory.length; i++) {
+        ctx.lineTo(trajectory[i].x, trajectory[i].y);
+      }
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+    }
+    
+    if (redBall && redBall.visible && redTrajectory.length > 1 && redTrajectoryCheckbox.checked) {
+      ctx.beginPath();
+      ctx.moveTo(redTrajectory[0].x, redTrajectory[0].y);
+      for (let i = 1; i < redTrajectory.length; i++) {
+        ctx.lineTo(redTrajectory[i].x, redTrajectory[i].y);
+      }
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.closePath();
+    }
+    
+    if (movingBall.visible) {
+      ctx.beginPath();
+      ctx.arc(movingBall.x, movingBall.y, movingBall.radius, 0, Math.PI*2);
+      ctx.fillStyle = 'blue';
+      ctx.fill();
+      ctx.closePath();
+    }
+    
+    if (redBall && redBall.visible) {
+      ctx.beginPath();
+      ctx.arc(redBall.x, redBall.y, redBall.radius, 0, Math.PI*2);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+      ctx.closePath();
+    }
+    
+    ctx.beginPath();
+    ctx.arc(movingBall.initialX, movingBall.initialY, 5, 0, Math.PI*2);
+    ctx.fillStyle = 'black';
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function simulationLoop() {
+    if (!simulationRunning) return;
+    updateSimulation();
+    drawSimulation();
+    requestAnimationFrame(simulationLoop);
+  }
+
+  startBtn.addEventListener('click', function() {
+    simulationRunning = true;
+    resetSimulation();
+    simulationLoop();
+  });
+</script>
+{% endblock %}

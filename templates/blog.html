@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Blog - MyBlog{% endblock %}
+
+{% block content %}
+<div class="blog-container">
+  {% if posts %}
+    {% for post in posts %}
+      <div class="blog-box">
+        <h3><a href="{{ url_for('blog_detail', post_id=post.id) }}" style="color: black;">{{ post.title }}</a></h3>
+        {% if post.category %}
+          <p class="category">[{{ post.category }}]</p>
+        {% endif %}
+        {% if post.tags %}
+          <p class="tags">태그: {{ post.tags }}</p>
+        {% endif %}
+        <div class="post-preview">
+          <p>{{ post.content|striptags|truncate(200) }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>게시글이 없습니다.</p>
+  {% endif %}
+  <div class="write-btn-container">
+    <a href="{{ url_for('blog_new') }}" class="write-post-btn">글쓰기</a>
+  </div>
+</div>
+{% endblock %}

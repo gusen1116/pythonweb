@@ -1,0 +1,122 @@
+/* 기본 리셋 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 본문 스타일 */
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  line-height: 1.6;
+  padding-top: 70px; /* 고정 헤더 공간 확보 */
+}
+
+/* 헤더 */
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.header-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.left-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 15px;
+}
+.left-nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+.logo img {
+  height: 40px; /* 로고 크기를 작게 */
+}
+.right-nav input {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+}
+
+/* 메인 콘텐츠 */
+main.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+/* 블로그/에디터 컨테이너 */
+.blog-container,
+.editor-container {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* 글쓰기 버튼 */
+.write-post-btn {
+  background-color: #333;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 0.9em;
+}
+.write-post-btn:hover {
+  background-color: #555;
+}
+
+/* 슬라이더 */
+.slider-container {
+  max-width: 600px;
+  margin: 20px auto;
+  overflow: hidden;
+  border-radius: 5px;
+  position: relative;
+  background-color: #222; /* 배경색 추가 */
+}
+.slider-wrapper {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+.slide {
+  min-width: 100%;
+  padding: 20px;
+  text-align: center;
+  color: #fff;
+}
+
+/* 푸터 */
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: right;
+  width: 100%;
+  position: relative;
+  margin-top: 40px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    text-align: center;
+  }
+}

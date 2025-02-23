@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}새 글 작성 - MyBlog{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+  <h2>새 글 작성</h2>
+  <form method="POST" action="{{ url_for('blog_new') }}" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="title">제목</label>
+      <input type="text" id="title" name="title" placeholder="제목을 입력하세요" required>
+    </div>
+    <div class="form-group">
+      <label for="tags">태그 (쉼표로 구분)</label>
+      <input type="text" id="tags" name="tags">
+    </div>
+    <div class="form-group">
+      <label for="category">카테고리</label>
+      <input type="text" id="category" name="category">
+    </div>
+    <div class="form-group">
+      <label for="content">본문 (Editor.js 사용)</label>
+      <!-- Editor.js 에디터가 적용될 컨테이너 -->
+      <div id="editorjs"></div>
+      <!-- 에디터 내용을 JSON으로 저장할 hidden 필드 -->
+      <input type="hidden" name="content" id="editor_content">
+    </div>
+    <div class="form-group">
+      <label for="image">이미지 업로드</label>
+      <input type="file" id="image" name="image" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label>
+        <input type="checkbox" name="is_markdown" value="true">
+        마크다운 사용
+      </label>
+    </div>
+    <button type="submit" class="submit-btn">글 올리기</button>
+  </form>
+</div>
+{% endblock %}

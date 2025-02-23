@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MyBlog{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <!-- 헤더 -->
+  <header>
+    <div class="header-container">
+      <nav class="left-nav">
+        <ul class="nav-tabs">
+          <li><a href="{{ url_for('blog') }}">Blog</a></li>
+          <li><a href="{{ url_for('project') }}">Project</a></li>
+        </ul>
+      </nav>
+      <div class="logo">
+        <a href="{{ url_for('home') }}">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        </a>
+      </div>
+      <nav class="right-nav">
+        <input type="text" placeholder="내 블로그 검색...">
+      </nav>
+    </div>
+  </header>
+
+  <!-- 메인 콘텐츠 영역 -->
+  <main class="container">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- 푸터 -->
+  <footer>
+    <div class="footer-container">
+      <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+      <p>&copy; 2025</p>
+    </div>
+  </footer>
+
+  <!-- 번들된 자바스크립트 파일 -->
+  <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>
+</body>
+</html>

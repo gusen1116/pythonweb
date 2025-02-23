@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}MyBlog - Home{% endblock %}
+
+{% block content %}
+<!-- 배너 (디자인은 그대로 유지) -->
+<div class="slider-container">
+  <div class="slider-wrapper">
+    <div class="slide">
+      <h1>와 구센임!</h1>
+      <p>뭐 구센이다 어쩔건데</p>
+    </div>
+    <div class="slide">
+      <h1>두 번째 배너</h1>
+      <p>두 번째 배너 내용입니다.</p>
+    </div>
+    <div class="slide">
+      <h1>세 번째 배너</h1>
+      <p>세 번째 배너 내용입니다.</p>
+    </div>
+  </div>
+  <button class="slider-btn prev">&#10094;</button>
+  <button class="slider-btn next">&#10095;</button>
+</div>
+
+<!-- 미리보기 컨테이너 박스 (블로그페이지와 동일한 스타일) -->
+<div class="extra-box blog-previews">
+  {% if posts %}
+    {% for post in posts %}
+      <div class="blog-preview">
+        <h3><a href="{{ url_for('blog_detail', post_id=post.id) }}">{{ post.title }}</a></h3>
+        <div class="post-preview">
+          <p>{{ post.content }}</p>
+        </div>
+        {% if not loop.last %}
+          <hr class="separator">
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p style="text-align: center; color: #777;">아직 게시글이 없습니다.</p>
+  {% endif %}
+</div>
+{% endblock %}
