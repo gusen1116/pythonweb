@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}로그인 - MyBlog{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-box">
+    <h2>로그인</h2>
+    <form method="post" action="{{ url_for('auth.login') }}">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-group">
+        {{ form.username.label }}
+        {{ form.username(class="form-control", placeholder="사용자 이름") }}
+        {% for error in form.username.errors %}
+          <span class="error">{{ error }}</span>
+        {% endfor %}
+      </div>
+      
+      <div class="form-group">
+        {{ form.password.label }}
+        {{ form.password(class="form-control", placeholder="비밀번호") }}
+        {% for error in form.password.errors %}
+          <span class="error">{{ error }}</span>
+        {% endfor %}
+      </div>
+      
+      <div class="form-check">
+        {{ form.remember_me(class="form-check-input") }}
+        {{ form.remember_me.label(class="form-check-label") }}
+      </div>
+      
+      <div class="form-actions">
+        {{ form.submit(class="btn auth-btn") }}
+      </div>
+    </form>
+    
+    <div class="auth-links">
+      <a href="{{ url_for('auth.reset_password_request') }}">비밀번호를 잊으셨나요?</a>
+      <span class="divider">|</span>
+      <a href="{{ url_for('auth.register') }}">회원가입</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

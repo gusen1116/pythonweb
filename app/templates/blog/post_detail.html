@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} - MyBlog{% endblock %}
+{% block content %}
+<div class="blog-detail-container">
+  <div class="post-header">
+    <h1>{{ post.title }}</h1>
+    
+    <div class="post-meta">
+      {% if post.category %}
+        <a href="{{ url_for('blog.category', slug=post.category.slug) }}" class="category">[{{ post.category.name }}]</a>
+      {% endif %}
+      
+      {% if post.tags %}
+        <div class="tags-container">
+          {% for tag in post.tags %}
+            <a href="{{ url_for('blog.tag', slug=tag.slug) }}" class="tag">{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <span class="post-date">{{ post.created_at.strftime('%Y년 %m월 %d일') }}</span>
+      {% if post.author %}
+        <span class="post-author">{{ post.author.username }}</span>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- 전체 콘텐츠 영역 -->
+  <div class="full-content">
+    {{ post.content|edjs_to_html }}
+  </div>
+  
+  <!-- 글 수정 및 삭제 버튼 -->
+  {% if current_user.is_authenticated and (post.user_id == current_user.id or current_user.is_administrator()) %}
+  <div class="post-actions">
+    <a href="{{ url_for('blog.edit_post', post_id=post.id) }}" class="edit-btn">수정</a>
+    <form action="{{ url_for('blog.delete_post_route', post_id=post.id) }}" method="post" style="display:inline;">
+      <button type="submit" class="delete-btn" onclick="return confirm('정말 이 게시글을 삭제하시겠습니까?');">삭제</button>
+    </form>
+  </div>
+  {% endif %}
+  
+  <!-- 다음/이전 글 네비게이션 -->
+  <div class="post-navigation">
+    {% if prev_post %}
+      <a href="{{ url_for('blog.post_detail', post_id=prev_post.id) }}" class="prev-post">
+        <span>이전 글</span>
+        <span class="nav-title">{{ prev_post.title }}</span>
+      </a>
+    {% else %}
+      <span class="nav-placeholder"></span>
+    {% endif %}
+    
+    {% if next_post %}
+      <a href="{{ url_for('blog.post_detail', post_id=next_post.id) }}" class="next-post">
+        <span>다음 글</span>
+        <span class="nav-title">{{ next_post.title }}</span>
+      </a>
+    {% else %}
+      <span class="nav-placeholder"></span>
+    {% endif %}
+  </div>
+  
+  <!-- 관련 글 섹션 -->
+  {% if related_posts %}
+    <div class="related-posts">
+      <h3>관련 글</h3>
+      <div class="related-posts-grid">
+        {% for related in related_posts %}
+          <a href="{{ url_for('blog.post_detail', post_id=related.id) }}" class="related-post-card">
+            <h4>{{ related.title }}</h4>
+            <span class="related-date">{{ related.created_at.strftime('%Y.%m.%d') }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+  
+  <!-- 댓글 섹션 -->
+  <div class="comments-section">
+    <h3>댓글 ({{ comments|length }})</h3>
+    
+    <!-- 댓글 목록 -->
+    {% if comments %}
+      <div class="comments-list">
+        {% for comment in comments %}
+          <div class="comment">
+            <div class="comment-header">
+              <span class="comment-author">
+                {% if comment.user_id %}
+                  {{ comment.author.username }}
+                {% else %}
+                  {{ comment.guest_name }}
+                {% endif %}
+              </span>
+              <span class="comment-date">{{ comment.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
+            </div>
+            <div class="comment-content">{{ comment.content }}</div>
+            {% if current_user.is_authenticated and (current_user.id == comment.user_id or current_user.id == post.user_id or current_user.is_administrator()) %}
+              <form action="{{ url_for('blog.delete_comment', comment_id=comment.id) }}" method="post" class="comment-delete">
+                <button type="submit" onclick="return confirm('댓글을 삭제하시겠습니까?');">삭제</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      
+      <!-- 페이지네이션 -->
+      {% if pagination.pages > 1 %}
+        <div class="pagination">
+          {% if pagination.has_prev %}
+            <a href="{{ url_for('blog.post_detail', post_id=post.id, page=pagination.prev_num) }}" class="page-link">&laquo; 이전</a>
+          {% endif %}
+          
+          {% for p in pagination.iter_pages() %}
+            {% if p %}
+              {% if p == pagination.page %}
+                <span class="page-link current">{{ p }}</span>
+              {% else %}
+                <a href="{{ url_for('blog.post_detail', post_id=post.id, page=p) }}" class="page-link">{{ p }}</a>
+              {% endif %}
+            {% else %}
+              <span class="page-link dots">...</span>
+            {% endif %}
+          {% endfor %}
+          
+          {% if pagination.has_next %}
+            <a href="{{ url_for('blog.post_detail', post_id=post.id, page=pagination.next_num) }}" class="page-link">다음 &raquo;</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% else %}
+      <p class="no-comments">아직 댓글이 없습니다.</p>
+    {% endif %}
+    
+    <!-- 댓글 작성 폼 -->
+    <div class="comment-form">
+      <h4>댓글 작성</h4>
+      <form action="{{ url_for('blog.add_comment', post_id=post.id) }}" method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+          {{ form.content.label }}
+          {{ form.content(class="form-control", rows=4) }}
+          {% for error in form.content.errors %}
+            <span class="error">{{ error }}</span>
+          {% endfor %}
+        </div>
+        
+        {% if not current_user.is_authenticated %}
+          <div class="form-row">
+            <div class="form-group half">
+              {{ form.name.label }}
+              {{ form.name(class="form-control", placeholder="이름") }}
+              {% for error in form.name.errors %}
+                <span class="error">{{ error }}</span>
+              {% endfor %}
+            </div>
+            
+            <div class="form-group half">
+              {{ form.email.label }}
+              {{ form.email(class="form-control", placeholder="이메일") }}
+              {% for error in form.email.errors %}
+                <span class="error">{{ error }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <p class="guest-comment-notice">* 비로그인 댓글은 관리자 승인 후 표시됩니다.</p>
+        {% endif %}
+        
+        <div class="form-action">
+          {{ form.submit(class="btn submit-btn") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

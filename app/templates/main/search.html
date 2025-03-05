@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}검색 결과 - {{ query }}{% endblock %}
+{% block content %}
+<div class="blog-container">
+  <div class="search-query">
+    <h2>검색 결과: <strong>{{ query }}</strong></h2>
+  </div>
+  
+  <div class="search-count">
+    {{ posts|length }}개의 검색 결과를 찾았습니다.
+  </div>
+  
+  {% if posts %}
+    <div class="search-results">
+      {% for post in posts %}
+        {% set preview_data = post.content|extract_preview %}
+        <div class="blog-preview">
+          <h3>
+            <a href="{{ url_for('blog_detail', post_id=post.id) }}">{{ post.title }}</a>
+          </h3>
+          
+          <div class="post-preview">
+            {% if preview_data.first_image %}
+              <img src="{{ preview_data.first_image }}" alt="Preview" class="post-preview-image">
+            {% elif post.image %}
+              <img src="{{ post.image }}" alt="Preview" class="post-preview-image">
+            {% endif %}
+            
+            <div class="preview-content">
+              {% set preview_text = preview_data.text_combined|striptags|truncate(300) %}
+              {% set lines = preview_text|length // 40 %}
+              
+              <div class="preview-text {% if lines >= 3 %}has-fade{% endif %}">
+                {{ preview_text }}
+              </div>
+              <a href="{{ url_for('blog_detail', post_id=post.id) }}" class="read-more">더 읽기 →</a>
+              
+              <div class="post-meta-bottom">
+                <div class="tags-category">
+                  {% if post.category %}
+                    <span class="category">[{{ post.category }}]</span>
+                  {% endif %}
+                  {% if post.tags %}
+                    <span class="tags">{{ post.tags }}</span>
+                  {% endif %}
+                </div>
+                <span class="date">{{ post.created_at.strftime('%Y년 %m월 %d일') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {% if not loop.last %}
+          <hr class="separator">
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>검색 결과가 없습니다.</p>
+      <p>다른 검색어로 다시 시도해보세요.</p>
+    </div>
+  {% endif %}
+  
+  <div style="text-align:center; margin-top:20px;">
+    <a href="{{ url_for('blog') }}" class="view-all-btn">블로그 목록으로 돌아가기</a>
+  </div>
+</div>
+{% endblock %}

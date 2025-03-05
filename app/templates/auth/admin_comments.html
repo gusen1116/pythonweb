@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}댓글 관리 - MyBlog{% endblock %}
+{% block content %}
+<div class="blog-container">
+  <h2>댓글 관리</h2>
+  
+  {% if comments %}
+    <p>승인 대기 중인 댓글이 {{ pagination.total }}개 있습니다.</p>
+    
+    <div class="comments-list">
+      {% for comment in comments %}
+        <div class="comment admin-comment">
+          <div class="comment-header">
+            <span class="comment-author">
+              {% if comment.guest_name %}
+                {{ comment.guest_name }} ({{ comment.guest_email }})
+              {% else %}
+                {{ comment.author.username }}
+              {% endif %}
+            </span>
+            <span class="comment-date">{{ comment.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
+          </div>
+          <div class="comment-content">{{ comment.content }}</div>
+          <div class="comment-post">
+            게시글: <a href="{{ url_for('blog.post_detail', post_id=comment.post_id) }}">{{ comment.post.title }}</a>
+          </div>
+          <div class="comment-actions">
+            <form action="{{ url_for('blog.approve_comment', comment_id=comment.id) }}" method="post" class="inline-form">
+              <button type="submit" class="approve-btn">승인</button>
+            </form>
+            <form action="{{ url_for('blog.delete_comment', comment_id=comment.id) }}" method="post" class="inline-form">
+              <button type="submit" class="delete-btn" onclick="return confirm('정말 이 댓글을 삭제하시겠습니까?');">삭제</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    <!-- 페이지네이션 -->
+    {% if pagination.pages > 1 %}
+      <div class="pagination">
+        {% if pagination.has_prev %}
+          <a href="{{ url_for('blog.admin_comments', page=pagination.prev_num) }}" class="page-link">&laquo; 이전</a>
+        {% endif %}
+        
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span class="page-link current">{{ p }}</span>
+            {% else %}
+              <a href="{{ url_for('blog.admin_comments', page=p) }}" class="page-link">{{ p }}</a>
+            {% endif %}
+          {% else %}
+            <span class="page-link dots">...</span>
+          {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+          <a href="{{ url_for('blog.admin_comments', page=pagination.next_num) }}" class="page-link">다음 &raquo;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <p>승인 대기 중인 댓글이 없습니다.</p>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  .admin-comment {
+    margin-bottom: 20px;
+    border-left: 3px solid var(--accent-primary);
+  }
+  
+  .comment-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .inline-form {
+    display: inline-block;
+  }
+  
+  .approve-btn {
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .delete-btn {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .comment-post {
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+  }
+</style>
+{% endblock %}

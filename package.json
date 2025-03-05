@@ -3,13 +3,41 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config webpack.prod.js && npm run copy-static",
+    "build:dev": "webpack --config webpack.dev.js && npm run copy-static",
+    "copy-static": "mkdir -p app/static/js && cp -r static/js/* app/static/js/",
+    "analyze": "webpack-bundle-analyzer"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@editorjs/editorjs": "^2.30.8"
+    "@editorjs/code": "^2.8.0",
+    "@editorjs/editorjs": "^2.28.0",
+    "@editorjs/embed": "^2.7.0",
+    "@editorjs/header": "^2.7.0",
+    "@editorjs/image": "^2.8.1",
+    "@editorjs/list": "^1.8.0",
+    "@editorjs/marker": "^1.4.0",
+    "@editorjs/paragraph": "^2.11.7",
+    "@editorjs/quote": "^2.5.0",
+    "@editorjs/underline": "^1.1.0",
+    "install": "^0.13.0",
+    "npm": "^11.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
+    "babel-loader": "^9.2.1",
+    "compression-webpack-plugin": "^11.1.0",
+    "core-js": "^3.41.0",
+    "editorjs-drag-drop": "^1.1.16",
+    "editorjs-tooltip": "^1.2.2",
+    "path-browserify": "^1.0.1",
+    "terser-webpack-plugin": "^5.3.12",
+    "webpack": "^5.98.0",
+    "webpack-bundle-analyzer": "^4.10.2",
+    "webpack-cli": "^5.1.4"
   }
 }

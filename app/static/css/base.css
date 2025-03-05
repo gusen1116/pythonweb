@@ -1,0 +1,158 @@
+/* base.css - 기본 스타일, 변수, 리셋 */
+
+/* 모던 블로그 테마 - GitHub/VS Code 스타일 */
+
+:root {
+    /* 라이트 모드 (기본 테마) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f8fa;
+    --bg-tertiary: #eaeef2;
+    --text-primary: #24292e;
+    --text-secondary: #586069;
+    --border-color: #e1e4e8;
+    --accent-primary: #0366d6;
+    --accent-secondary: #2188ff;
+    --success-color: #28a745;
+    --danger-color: #d73a49;
+    --warning-color: #f66a0a;
+    
+    /* 타이포그래피 */
+    --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    
+    /* 간격 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    
+    /* 반경 */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    
+    /* 그림자 */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    
+    /* 전환 */
+    --transition-fast: 0.1s ease;
+    --transition-normal: 0.2s ease;
+    --transition-slow: 0.3s ease-in-out;
+  }
+  
+  /* 다크 모드 테마 */
+  body.dark-theme {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --border-color: #30363d;
+    --accent-primary: #58a6ff;
+    --accent-secondary: #1f6feb;
+    --success-color: #238636;
+    --danger-color: #f85149;
+    --warning-color: #f0883e;
+    
+    /* 그림자 - 다크 모드에서는 더 진한 그림자 */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.07);
+    --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* 기본 리셋 */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+  }
+  
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    transition: background-color var(--transition-slow), color var(--transition-slow);
+  }
+  
+  /* 링크 스타일 */
+  a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  /* 이미지 자동 크기 조정 */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* 코드 블록 */
+  pre, code {
+    font-family: var(--font-mono);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+  }
+  
+  code {
+    padding: 0.2em 0.4em;
+    font-size: 0.85em;
+  }
+  
+  pre {
+    padding: var(--spacing-md);
+    overflow-x: auto;
+    margin: var(--spacing-md) 0;
+  }
+  
+  pre code {
+    padding: 0;
+    background-color: transparent;
+  }
+  
+  /* figure 내 이미지 스타일 */
+  figure {
+    margin: var(--spacing-lg) 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  
+  figure img {
+    display: block;
+    margin: 0 auto;
+    transition: transform var(--transition-normal);
+  }
+  
+  figure img:hover {
+    transform: scale(1.01);
+  }
+  
+  figure figcaption {
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-tertiary);
+  }
+  
+  /* 단어 단위 줄바꿈 속성 (전역 적용) */
+  body, p, h1, h2, h3, h4, h5, h6, div, article, section {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }

@@ -1,0 +1,82 @@
+/* EditorJS 핵심 스타일 */
+.codex-editor {
+  position: relative;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.codex-editor__redactor {
+  position: relative;
+  box-sizing: border-box;
+  outline: none;
+  margin: 0 !important;
+}
+
+/* 도구바 표시 설정 */
+.ce-toolbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  opacity: 1;
+  visibility: visible !important;
+  transition: opacity 0.3s ease;
+  will-change: opacity, transform;
+  display: none;
+}
+
+.ce-toolbar--showed {
+  display: block;
+}
+
+.ce-toolbar__content {
+  max-width: 650px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.ce-toolbar__plus {
+  left: -34px;
+  position: absolute;
+  opacity: 0.8;
+}
+
+.ce-toolbar__plus:hover {
+  opacity: 1;
+}
+
+/* 블록 스타일 */
+.ce-block {
+  position: relative;
+  padding: 0.4em 0;
+  margin: 0;
+}
+
+.ce-block__content {
+  position: relative;
+  max-width: 650px;
+  margin: 0 auto;
+  transition: background-color 150ms ease;
+}
+
+/* 플러스 버튼 및 설정 버튼 */
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  display: block !important;
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background-color: #fbfcfe;
+  box-shadow: 0 0 0 1px rgba(201, 201, 204, 0.48);
+}
+
+/* 인라인 툴바 */
+.ce-inline-toolbar {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid rgba(201, 201, 204, 0.48);
+  box-shadow: 0 3px 15px -3px rgba(13, 20, 33, 0.13);
+  border-radius: 6px;
+  z-index: 2;
+}

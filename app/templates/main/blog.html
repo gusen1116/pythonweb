@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Blog - MyBlog{% endblock %}
+{% block content %}
+<div class="blog-container">
+  <h1>블로그</h1>
+  
+  {% if posts %}
+    {% for post in posts %}
+      <div class="blog-preview">
+        <h3>
+          <a href="{{ url_for('blog.post_detail', post_id=post.id) }}">{{ post.title }}</a>
+        </h3>
+        
+        <div class="post-preview">
+          {% if post.image %}
+            <img src="{{ post.image }}" alt="Preview" class="post-preview-image">
+          {% endif %}
+          
+          <div class="preview-content">
+            <div class="preview-text">
+              {{ post.extract_preview_data().text_combined|truncate(300) }}
+            </div>
+            <a href="{{ url_for('blog.post_detail', post_id=post.id) }}" class="read-more">더 읽기 →</a>
+            
+            <div class="post-meta-bottom">
+              <div class="tags-category">
+                {% if post.category %}
+                  <span class="category">[{{ post.category.name }}]</span>
+                {% endif %}
+                {% if post.tags %}
+                <span class="tags">{{ post.tags|map(attribute='name')|join(', ') }}</span>
+                {% endif %}
+              </div>
+              <span class="date">{{ post.created_at.strftime('%Y년 %m월 %d일') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    
+    <!-- 페이지네이션 -->
+    {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('blog.index', page=page-1) }}" class="page-link">&laquo; 이전</a>
+      {% endif %}
+      
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+          <span class="page-link current">{{ p }}</span>
+        {% else %}
+          <a href="{{ url_for('blog.index', page=p) }}" class="page-link">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+      
+      {% if page < total_pages %}
+        <a href="{{ url_for('blog.index', page=page+1) }}" class="page-link">다음 &raquo;</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <p>아직 게시글이 없습니다.</p>
+      <p>첫 번째 글을 작성해보세요!</p>
+    </div>
+  {% endif %}
+  
+  <div class="write-btn-container">
+    <a href="{{ url_for('blog.new_post') }}" class="write-post-btn">글쓰기</a>
+  </div>
+</div>
+{% endblock %}

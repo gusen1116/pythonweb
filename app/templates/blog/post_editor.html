@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}{% if post %}글 수정{% else %}새 글 작성{% endif %} - MyBlog{% endblock %}
+
+{% block head %}
+<!-- EditorJS 스타일 추가 -->
+<style>
+/* 에디터 기본 스타일 */
+.codex-editor {
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+  z-index: 1;
+}
+
+.codex-editor__redactor {
+  position: relative;
+  padding-bottom: 100px !important;
+  min-height: 400px;
+}
+
+/* 도구바 관련 스타일 */
+.ce-toolbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #fff;
+  transition: opacity 0.3s ease;
+  will-change: opacity, transform;
+  z-index: 2;
+}
+
+.ce-toolbar__content {
+  max-width: 650px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.ce-toolbar__plus {
+  left: -34px;
+  position: absolute;
+}
+
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  color: #707684;
+  cursor: pointer;
+  display: flex !important;
+}
+
+/* 블록 스타일 */
+.ce-block {
+  position: relative;
+  margin: 0.4em 0;
+}
+
+.ce-block__content {
+  position: relative;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+/* 인라인 툴바 */
+.ce-inline-toolbar {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 3px 15px -3px rgba(13,20,33,0.13);
+  border-radius: 4px;
+  z-index: 2;
+}
+
+/* 다크 모드 지원 */
+.dark-theme .ce-toolbar,
+.dark-theme .ce-inline-toolbar {
+  background-color: #333;
+  border-color: #555;
+}
+
+.dark-theme .ce-toolbar__plus,
+.dark-theme .ce-toolbar__settings-btn {
+  color: #aaa;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+  <h2>{% if post %}글 수정{% else %}새 글 작성{% endif %}</h2>
+  <form method="POST" action="{% if post %}{{ url_for('blog.edit_post', post_id=post.id) }}{% else %}{{ url_for('blog.new_post') }}{% endif %}">
+    {{ form.hidden_tag() }}
+    
+    <div class="form-group">
+      {{ form.title.label }}
+      {{ form.title(class="form-control", placeholder="제목을 입력하세요") }}
+      {% for error in form.title.errors %}
+        <span class="error">{{ error }}</span>
+      {% endfor %}
+    </div>
+    
+    <div class="form-group">
+      {{ form.category.label }}
+      {{ form.category(class="form-control") }}
+      {% for error in form.category.errors %}
+        <span class="error">{{ error }}</span>
+      {% endfor %}
+    </div>
+    
+    <div class="form-group">
+      {{ form.tags.label }}
+      {{ form.tags(class="form-control", placeholder="예: 개발, 코딩, 프로젝트") }}
+      {% for error in form.tags.errors %}
+        <span class="error">{{ error }}</span>
+      {% endfor %}
+    </div>
+    
+    <div class="form-group">
+      <label for="editorjs">본문</label>
+      <div id="editorjs" style="min-height: 400px; border: 1px solid var(--border-color); padding: 15px; border-radius: 5px;"></div>
+      {% for error in form.content.errors %}
+        <span class="error">{{ error }}</span>
+      {% endfor %}
+      {{ form.content(id="editor_content", style="display:none;") }}
+    </div>
+    
+    <div class="form-actions">
+      {{ form.submit(class="btn submit-btn") }}
+      <a href="{% if post %}{{ url_for('blog.post_detail', post_id=post.id) }}{% else %}{{ url_for('blog.index') }}{% endif %}" class="btn cancel-btn">취소</a>
+    </div>
+  </form>
+</div>
+
+{% block scripts %}
+<!-- EditorJS 라이브러리 및 플러그인 직접 로드 -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.7.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.7"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.8.0"></script>
+
+<!-- 에디터 초기화 스크립트 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 에디터 요소 확인
+  const editorElement = document.getElementById('editorjs');
+  if (!editorElement) {
+    console.error('에디터 요소를 찾을 수 없습니다');
+    return;
+  }
+  
+  // 이미 초기화되었는지 확인
+  if (editorElement.dataset.initialized === 'true') {
+    console.log('에디터가 이미 초기화되었습니다');
+    return;
+  }
+  
+  console.log('에디터 초기화 시작');
+  
+  // 기존 데이터 가져오기
+  const contentField = document.getElementById('editor_content');
+  let initialData = {
+    time: Date.now(),
+    blocks: [
+      {
+        type: 'paragraph',
+        data: {
+          text: ''
+        }
+      }
+    ]
+  };
+  
+  // 기존 콘텐츠가 있으면 불러오기
+  if (contentField && contentField.value && contentField.value.trim() !== '') {
+    try {
+      initialData = JSON.parse(contentField.value);
+      console.log('기존 컨텐츠 로드됨');
+    } catch (e) {
+      console.warn('기존 데이터 파싱 실패:', e);
+    }
+  }
+  
+  // 에디터 초기화
+  console.log('새 에디터 인스턴스 생성...');
+  const editor = new EditorJS({
+    holder: 'editorjs',
+    autofocus: true,
+    placeholder: '내용을 입력하세요...',
+    tools: {
+      paragraph: {
+        class: Paragraph,
+        inlineToolbar: true
+      },
+      header: {
+        class: Header,
+        inlineToolbar: true,
+        config: {
+          levels: [1, 2, 3, 4],
+          defaultLevel: 2
+        }
+      },
+      list: {
+        class: List,
+        inlineToolbar: true
+      }
+    },
+    data: initialData,
+    onReady: function() {
+      console.log('에디터 준비 완료');
+      editorElement.dataset.initialized = 'true';
+    },
+    onChange: function() {
+      this.save().then(function(outputData) {
+        if (contentField) {
+          contentField.value = JSON.stringify(outputData);
+          console.log('에디터 내용 자동 저장됨');
+        }
+      }).catch(function(error) {
+        console.error('저장 실패:', error);
+      });
+    }
+  });
+  
+  // 폼 제출 처리
+  const form = editorElement.closest('form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      console.log('폼 제출 중...');
+      editor.save().then(function(outputData) {
+        if (contentField) {
+          contentField.value = JSON.stringify(outputData);
+          console.log('최종 데이터 저장됨, 폼 제출...');
+          form.submit();
+        }
+      }).catch(function(error) {
+        console.error('최종 저장 실패:', error);
+        alert('내용을 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.');
+      });
+    });
+  }
+  
+  // 전역 변수로 노출 (디버깅용)
+  window.editor = editor;
+});
+</script>
+{% endblock %}
+{% endblock %}
